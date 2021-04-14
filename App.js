@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {
   Text,
   SafeAreaView,
@@ -6,39 +6,56 @@ import {
   NativeModules,
   TouchableOpacity,
 } from 'react-native';
+import BackgroundService from 'react-native-background-actions';
 
 const sleep = time => new Promise(resolve => setTimeout(() => resolve(), time));
 
+const options = {
+  taskName: 'Capture screenshot',
+  taskTitle: 'Capture screenshot',
+  taskDesc: 'capturing...',
+  taskIcon: {
+    name: 'ic_launcher',
+    type: 'mipmap',
+  },
+  color: '#ff00ff',
+  parameters: {
+    delay: 10000,
+  },
+};
+
 const App = () => {
   const {Screenshot} = NativeModules;
-  const [isRunning, setIsRunning] = useState(false);
+
+  const veryIntensiveTask = async taskDataArguments => {
+    const {delay} = taskDataArguments;
+    await new Promise(async resolve => {
+      for (let i = 0; BackgroundService.isRunning(); i++) {
+        console.log(i);
+        try {
+          const result = await Screenshot.captureScreenshot(delay);
+          console.log(`capture image count ${i}`, result.substring(0, 10));
+        } catch (error) {
+          console.log('capture failure');
+        }
+        await sleep(delay);
+      }
+    });
+  };
 
   useEffect(() => {
-    async function serviceStatus() {
-      const status = await Screenshot.isRunning();
-      setIsRunning(status);
+    async function task() {
+      await BackgroundService.start(veryIntensiveTask, options);
     }
-    serviceStatus();
+    task();
   }, []);
 
   const startCapture = async () => {
-    if (isRunning) return;
-    Screenshot.captureScreenshot()
-      .then(() => {
-        setIsRunning(true);
-      })
-      .catch(error => {
-        console.log('error', error);
-        setIsRunning(false);
-      });
-    await sleep(20000);
+    BackgroundService.start(veryIntensiveTask, options);
   };
 
   const stopCapture = async () => {
-    if (!isRunning) return;
-    Screenshot.stopCapturing();
-    setIsRunning(false);
-    await sleep(20000);
+    BackgroundService.stop();
   };
 
   return (
@@ -47,7 +64,7 @@ const App = () => {
         <Text style={styles.text}>{'Start Capture'}</Text>
       </TouchableOpacity>
       <TouchableOpacity
-        style={[styles.button, {marginTop: 16, backgroundColor: 'tomato'}]}
+        style={[styles.button, styles.buttonStyle]}
         onPress={stopCapture}>
         <Text style={styles.text}>{'Stop Capture'}</Text>
       </TouchableOpacity>
@@ -67,6 +84,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 8,
     backgroundColor: 'green',
+  },
+  buttonStyle: {
+    marginTop: 16,
+    backgroundColor: 'tomato',
   },
   text: {
     fontFamily: 'Avenir',

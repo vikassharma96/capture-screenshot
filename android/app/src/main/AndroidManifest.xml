@@ -24,7 +24,7 @@
             </intent-filter>
         </activity>
         <service
-            android:name=".capture.ScreenCaptureService"
+            android:name="com.asterinet.react.bgactions.RNBackgroundActionsTask"
             android:foregroundServiceType="mediaProjection" />
     </application>
 </manifest>
