@@ -12,7 +12,8 @@
   "dependencies": {
     "react": "17.0.1",
     "react-native": "0.64.0",
-    "react-native-background-actions": "^2.6.0"
+    "react-native-background-actions": "^2.6.0",
+    "react-native-secp256k1": "^1.0.4"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",

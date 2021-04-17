@@ -5202,6 +5202,11 @@ react-native-codegen@^0.0.6:
     jscodeshift "^0.11.0"
     nullthrows "^1.1.1"
 
+react-native-secp256k1@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/react-native-secp256k1/-/react-native-secp256k1-1.0.4.tgz#38d9962df54684342dcf176f27c9e4a7f1176d1f"
+  integrity sha512-o0aXLOp/qtES4jkkWemu/ktP/3CHRoa2V9ZRE28X8loWxS6fwBSWd4cm0HiLYtn1ZSYdIBvGDeMvos/oY2zYJw==
+
 react-native@0.64.0:
   version "0.64.0"
   resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.64.0.tgz#c3bde5b638bf8bcf12bae6e094930d39cb942ab7"

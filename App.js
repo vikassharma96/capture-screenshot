@@ -6,6 +6,7 @@ import {
   NativeModules,
   TouchableOpacity,
 } from 'react-native';
+import secp256k1 from 'react-native-secp256k1';
 import BackgroundService from 'react-native-background-actions';
 
 const sleep = time => new Promise(resolve => setTimeout(() => resolve(), time));
@@ -32,8 +33,37 @@ const App = () => {
     await new Promise(async resolve => {
       for (let i = 0; BackgroundService.isRunning(); i++) {
         try {
-          const result = await Screenshot.captureScreenshot(delay);
-          console.log(`capture image count ${i}`, result.substring(0, 10));
+          const base64String = await Screenshot.captureScreenshot(delay);
+          console.log(
+            `capture image count ${i}`,
+            base64String.substring(0, 10),
+          );
+
+          const privA = await secp256k1.ext.generateKey();
+          const privB = await secp256k1.ext.generateKey();
+
+          const pubA = await secp256k1.computePubkey(privA, true);
+          const pubB = await secp256k1.computePubkey(privB, true);
+
+          // sign verify
+          const data = '1H1SJuGwoSFTqNI8wvVWEdGRpBvTnzLckoZ1QTF7gI0';
+          const sigA = await secp256k1.sign(data, privA);
+          console.log('verify: ', await secp256k1.verify(data, sigA, pubA));
+
+          // ecdh && aes256
+          const encryped = await secp256k1.ext.encryptECDH(
+            privA,
+            pubB,
+            base64String,
+          );
+          const decryped = await secp256k1.ext.decryptECDH(
+            privB,
+            pubA,
+            encryped,
+          );
+
+          console.log('encrypted image ', encryped.substring(0, 10));
+          console.log('decrypted image ', decryped.substring(0, 10));
         } catch (error) {
           console.log('capture failure');
           await BackgroundService.stop();
