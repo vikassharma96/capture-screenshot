@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {
   Text,
   SafeAreaView,
@@ -31,30 +31,24 @@ const App = () => {
     const {delay} = taskDataArguments;
     await new Promise(async resolve => {
       for (let i = 0; BackgroundService.isRunning(); i++) {
-        console.log(i);
         try {
           const result = await Screenshot.captureScreenshot(delay);
           console.log(`capture image count ${i}`, result.substring(0, 10));
         } catch (error) {
           console.log('capture failure');
+          await BackgroundService.stop();
         }
         await sleep(delay);
       }
     });
   };
 
-  useEffect(() => {
-    async function task() {
-      await BackgroundService.start(veryIntensiveTask, options);
-    }
-    task();
-  }, []);
-
   const startCapture = async () => {
     BackgroundService.start(veryIntensiveTask, options);
   };
 
   const stopCapture = async () => {
+    await Screenshot.stopCapturing();
     BackgroundService.stop();
   };
 
