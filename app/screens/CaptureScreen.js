@@ -1,5 +1,6 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
+  View,
   Text,
   SafeAreaView,
   StyleSheet,
@@ -31,15 +32,20 @@ const options = {
 const CaptureScreen = () => {
   const {Screenshot} = NativeModules;
   const appConfigApi = useApi(configApi);
+  const [appConfigData, setAppConfigData] = useState();
+  const [message, setMessage] = useState(false);
 
   useEffect(() => {
     async function getAppConfiguration() {
       const user = await getUser();
-      const {data} = appConfigApi.request(user.token);
-      console.log('app config data', data);
+      const {data: configData} = await appConfigApi.request(
+        user.organisationCode,
+        user.token,
+      );
+      setAppConfigData(configData.data);
     }
     getAppConfiguration();
-  }, [appConfigApi]);
+  }, []);
 
   const veryIntensiveTask = async taskDataArguments => {
     const {delay} = taskDataArguments;
@@ -59,7 +65,7 @@ const CaptureScreen = () => {
           const pubB = await secp256k1.computePubkey(privB, true);
 
           // sign verify
-          const data = '1H1SJuGwoSFTqNI8wvVWEdGRpBvTnzLckoZ1QTF7gI0';
+          const data = appConfigData.imageSecret;
           const sigA = await secp256k1.sign(data, privA);
           console.log('verify: ', await secp256k1.verify(data, sigA, pubA));
 
@@ -87,7 +93,8 @@ const CaptureScreen = () => {
   };
 
   const startCapture = async () => {
-    BackgroundService.start(veryIntensiveTask, options);
+    if (appConfigData) BackgroundService.start(veryIntensiveTask, options);
+    else setMessage(true);
   };
 
   const stopCapture = async () => {
@@ -105,6 +112,11 @@ const CaptureScreen = () => {
         onPress={stopCapture}>
         <Text style={styles.text}>{'Stop Capture'}</Text>
       </TouchableOpacity>
+      {message && (
+        <View style={styles.error}>
+          <Text style={styles.errorText}>Something went wrong!</Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -129,6 +141,18 @@ const styles = StyleSheet.create({
   text: {
     fontFamily: 'Avenir',
     fontSize: 15,
+  },
+  error: {
+    position: 'absolute',
+    bottom: 0,
+    backgroundColor: 'red',
+    height: '5%',
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  errorText: {
+    color: 'white',
   },
 });
 

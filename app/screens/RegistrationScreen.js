@@ -77,6 +77,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: '20%',
     marginBottom: 20,
+    fontFamily: 'Avenir',
   },
   input: {
     width: '80%',
@@ -84,6 +85,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     marginVertical: 6,
+    fontFamily: 'Avenir',
   },
   button: {
     borderWidth: 1,

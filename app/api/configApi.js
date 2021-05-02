@@ -1,7 +1,7 @@
 import apiClient from './apiClient';
 
-const configApi = token =>
-  apiClient.get('sys-app/:organisationCode/configuration', {
+const configApi = (orgCode, token) =>
+  apiClient.get(`sys-app/${orgCode}/configuration`, {
     headers: {Authorization: `Bearer ${token}`},
   });
 
