@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {
   Text,
   SafeAreaView,
@@ -8,6 +8,9 @@ import {
 } from 'react-native';
 import secp256k1 from 'react-native-secp256k1';
 import BackgroundService from 'react-native-background-actions';
+import useApi from '../api/useApi';
+import configApi from '../api/configApi';
+import {getUser} from '../auth/storage';
 
 const sleep = time => new Promise(resolve => setTimeout(() => resolve(), time));
 
@@ -25,8 +28,18 @@ const options = {
   },
 };
 
-const App = () => {
+const CaptureScreen = () => {
   const {Screenshot} = NativeModules;
+  const appConfigApi = useApi(configApi);
+
+  useEffect(() => {
+    async function getAppConfiguration() {
+      const user = await getUser();
+      const {data} = appConfigApi.request(user.token);
+      console.log('app config data', data);
+    }
+    getAppConfiguration();
+  }, [appConfigApi]);
 
   const veryIntensiveTask = async taskDataArguments => {
     const {delay} = taskDataArguments;
@@ -119,4 +132,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+export default CaptureScreen;
