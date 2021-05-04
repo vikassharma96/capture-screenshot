@@ -66,6 +66,7 @@ const CaptureScreen = () => {
 
           // sign verify
           const data = appConfigData.imageSecret;
+          console.log('appConfigData.imageSecret', appConfigData.imageSecret);
           const sigA = await secp256k1.sign(data, privA);
           console.log('verify: ', await secp256k1.verify(data, sigA, pubA));
 
@@ -84,7 +85,7 @@ const CaptureScreen = () => {
           console.log('encrypted image ', encryped.substring(0, 10));
           console.log('decrypted image ', decryped.substring(0, 10));
         } catch (error) {
-          console.log('capture failure');
+          console.log('capture failure', error);
           await BackgroundService.stop();
         }
         await sleep(delay);

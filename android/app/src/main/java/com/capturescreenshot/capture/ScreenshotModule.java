@@ -114,6 +114,11 @@ public class ScreenshotModule extends ReactContextBaseJavaModule {
                 currentActivity.startActivityForResult(mMediaProjectionManager.createScreenCaptureIntent(), REQUEST_CODE);
             }
         } catch (Exception exception) {
+            if (mVirtualDisplay == null) {
+                return;
+            }
+            mVirtualDisplay.release();
+            mVirtualDisplay = null;
             screenshotPromise.reject(TAG, exception);
             screenshotPromise = null;
         }
