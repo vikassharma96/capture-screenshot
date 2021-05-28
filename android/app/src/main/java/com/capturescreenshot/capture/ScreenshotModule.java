@@ -25,6 +25,8 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.WritableArray;
+import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.module.annotations.ReactModule;
 
 import java.io.ByteArrayOutputStream;
@@ -191,9 +193,10 @@ public class ScreenshotModule extends ReactContextBaseJavaModule {
                         bitmap.copyPixelsFromBuffer(buffer);
 
                         // write bitmap to a file
-                        fos = new FileOutputStream(mStoreDir + "/myscreen_" + IMAGES_PRODUCED + ".png");
+                        File file = new File(mStoreDir + "/myscreen_" + IMAGES_PRODUCED + ".png");
+                        Log.e("filepath", file.getAbsolutePath());
+                        fos = new FileOutputStream(file);
                         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-
                         IMAGES_PRODUCED++;
                         Log.e(TAG, "captured image: " + IMAGES_PRODUCED);
                         // bitmap to base64
@@ -201,7 +204,10 @@ public class ScreenshotModule extends ReactContextBaseJavaModule {
                         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
                         byte[] bytes = byteArrayOutputStream.toByteArray();
                         String base64 = Base64.encodeToString(bytes, Base64.DEFAULT);
-                        screenshotPromise.resolve(base64);
+                        WritableArray array = new WritableNativeArray();
+                        array.pushString(file.getAbsolutePath());
+                        array.pushString(base64);
+                        screenshotPromise.resolve(array);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
