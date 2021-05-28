@@ -7,11 +7,11 @@ import {
   NativeModules,
   TouchableOpacity,
 } from 'react-native';
-import secp256k1 from 'react-native-secp256k1';
 import BackgroundService from 'react-native-background-actions';
 import useApi from '../api/useApi';
 import configApi from '../api/configApi';
 import {getUser} from '../auth/storage';
+import Upload from 'react-native-background-upload';
 
 const sleep = time => new Promise(resolve => setTimeout(() => resolve(), time));
 
@@ -25,8 +25,14 @@ const options = {
   },
   color: '#ff00ff',
   parameters: {
-    delay: 10000,
+    delay: 15000,
   },
+};
+
+const apiOptions = {
+  method: 'POST',
+  type: 'multipart',
+  field: 'fileData',
 };
 
 const CaptureScreen = () => {
@@ -38,6 +44,14 @@ const CaptureScreen = () => {
   useEffect(() => {
     async function getAppConfiguration() {
       const user = await getUser();
+      apiOptions.parameters = {
+        email: user.email,
+        organisationid: user.organisationCode,
+      };
+      apiOptions.headers = {
+        Authorization: `Bearer ${user.token}`,
+        'content-type': 'multipart/form-data',
+      };
       const {data: configData} = await appConfigApi.request(
         user.organisationCode,
         user.token,
@@ -47,6 +61,37 @@ const CaptureScreen = () => {
     getAppConfiguration();
   }, []);
 
+  const uploadImage = async filePath => {
+    const options = {
+      url: appConfigData.imageUploadUrl,
+      ...apiOptions,
+      path: filePath,
+      notification: {
+        enabled: true,
+      },
+    };
+    const upload = await Upload.startUpload(options)
+      .then(uploadId => {
+        console.log('Upload started');
+        Upload.addListener('progress', uploadId, data => {
+          console.log(`Progress: ${data.progress}%`);
+        });
+        Upload.addListener('error', uploadId, data => {
+          console.log(`Error: ${data.error}%`);
+        });
+        Upload.addListener('cancelled', uploadId, data => {
+          console.log(`Cancelled!`);
+        });
+        Upload.addListener('completed', uploadId, data => {
+          // data includes responseCode: number and responseBody: Object
+          console.log('Completed!');
+        });
+      })
+      .catch(err => {
+        console.log('Upload error!', err);
+      });
+  };
+
   const veryIntensiveTask = async taskDataArguments => {
     const {delay} = taskDataArguments;
     await new Promise(async resolve => {
@@ -55,37 +100,11 @@ const CaptureScreen = () => {
           const base64String = await Screenshot.captureScreenshot(delay);
           console.log(
             `capture image count ${i}`,
-            base64String.substring(0, 10),
+            base64String[1]?.substring(0, 10),
           );
-
-          const privA = await secp256k1.ext.generateKey();
-          const privB = await secp256k1.ext.generateKey();
-
-          const pubA = await secp256k1.computePubkey(privA, true);
-          const pubB = await secp256k1.computePubkey(privB, true);
-
-          // sign verify
-          const data = appConfigData.imageSecret;
-          console.log('appConfigData.imageSecret', appConfigData.imageSecret);
-          const sigA = await secp256k1.sign(data, privA);
-          console.log('verify: ', await secp256k1.verify(data, sigA, pubA));
-
-          // ecdh && aes256
-          const encryped = await secp256k1.ext.encryptECDH(
-            privA,
-            pubB,
-            base64String,
-          );
-          const decryped = await secp256k1.ext.decryptECDH(
-            privB,
-            pubA,
-            encryped,
-          );
-
-          console.log('encrypted image ', encryped.substring(0, 10));
-          console.log('decrypted image ', decryped.substring(0, 10));
+          await uploadImage(base64String[0]);
         } catch (error) {
-          console.log('capture failure', error);
+          console.error('capture failure', error);
           await BackgroundService.stop();
         }
         await sleep(delay);
