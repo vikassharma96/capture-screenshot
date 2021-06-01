@@ -235,6 +235,7 @@ public class ScreenshotModule extends ReactContextBaseJavaModule {
         if (mVirtualDisplay == null) {
             return;
         }
+        mMediaProjection = null;
         mVirtualDisplay.release();
         mVirtualDisplay = null;
         promise.resolve("capture stopped...");
