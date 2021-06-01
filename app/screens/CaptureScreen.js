@@ -12,6 +12,7 @@ import useApi from '../api/useApi';
 import configApi from '../api/configApi';
 import {getUser} from '../auth/storage';
 import Upload from 'react-native-background-upload';
+const RNFS = require('react-native-fs');
 
 const sleep = time => new Promise(resolve => setTimeout(() => resolve(), time));
 
@@ -32,7 +33,7 @@ const options = {
 const apiOptions = {
   method: 'POST',
   type: 'multipart',
-  field: 'fileData',
+  field: 'file',
 };
 
 const CaptureScreen = () => {
@@ -67,7 +68,7 @@ const CaptureScreen = () => {
       ...apiOptions,
       path: filePath,
       notification: {
-        enabled: true,
+        enabled: false,
       },
     };
     const upload = await Upload.startUpload(options)
@@ -77,14 +78,20 @@ const CaptureScreen = () => {
           console.log(`Progress: ${data.progress}%`);
         });
         Upload.addListener('error', uploadId, data => {
-          console.log(`Error: ${data.error}%`);
+          console.log(`Error: ${JSON.stringify(data)}%`);
         });
         Upload.addListener('cancelled', uploadId, data => {
-          console.log(`Cancelled!`);
+          console.log('Cancelled!');
         });
         Upload.addListener('completed', uploadId, data => {
-          // data includes responseCode: number and responseBody: Object
-          console.log('Completed!');
+          RNFS.unlink(filePath)
+            .then(() => {
+              console.log('file deleted');
+            })
+            .catch(err => {
+              console.log(err.message, 'file deleted failed');
+            });
+          console.log('Completed!', data);
         });
       })
       .catch(err => {
@@ -105,6 +112,7 @@ const CaptureScreen = () => {
           await uploadImage(base64String[0]);
         } catch (error) {
           console.error('capture failure', error);
+          await Screenshot.stopCapturing();
           await BackgroundService.stop();
         }
         await sleep(delay);
@@ -118,8 +126,12 @@ const CaptureScreen = () => {
   };
 
   const stopCapture = async () => {
-    await Screenshot.stopCapturing();
-    BackgroundService.stop();
+    try {
+      await Screenshot.stopCapturing();
+      await BackgroundService.stop();
+    } catch (error) {
+      console.log('error', error);
+    }
   };
 
   return (

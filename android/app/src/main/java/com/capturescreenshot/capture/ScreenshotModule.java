@@ -193,7 +193,7 @@ public class ScreenshotModule extends ReactContextBaseJavaModule {
                         bitmap.copyPixelsFromBuffer(buffer);
 
                         // write bitmap to a file
-                        File file = new File(mStoreDir + "/myscreen_" + IMAGES_PRODUCED + ".png");
+                        File file = new File(mStoreDir + "/myscreen_" + IMAGES_PRODUCED + ".enc");
                         Log.e("filepath", file.getAbsolutePath());
                         fos = new FileOutputStream(file);
                         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);

@@ -15,7 +15,8 @@
     "react": "17.0.1",
     "react-native": "0.64.0",
     "react-native-background-actions": "^2.6.0",
-    "react-native-background-upload": "^6.2.4"
+    "react-native-background-upload": "^6.2.4",
+    "react-native-fs": "^2.18.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
